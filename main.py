@@ -1,6 +1,7 @@
+import os
+
 import requests
 from bs4 import BeautifulSoup as BS
-import os
 
 
 def parse_urls_by_year(start, end):
@@ -69,30 +70,22 @@ def get_keywords(urls):
 def filter_keywords(keywords):
     filter_keywords = []
     final_keywords = []
-    keywords_size = len(keywords)
-    cur = 0
 
     file = open('white_list.txt', 'r')
-    temp = file.readline()
-    while temp != '<endoftext>':
-        filter_keywords.append(temp)
-        temp = file.readline()
+    filter_keywords = file.read().split('\n')
+
 
     for keyword in keywords:
         if keyword not in final_keywords and keyword in filter_keywords:
             final_keywords.append(keyword)
-        os.system('clear')
-        print(f'Done {cur / keywords_size * 100}%')
-        cur += 1
 
     return final_keywords
 
+def pipeline(start, end, area):
+    urls = parse_urls_by_year(start, end)
+    filtered_urls = filter_urls(urls, area)
+    raw_keywords = get_keywords(filtered_urls)
+    final_keywords = filter_keywords(raw_keywords)
+    return final_keywords
 
-first, last = 1891, 1916
-area = ''
-urls = parse_urls_by_year(first, last)
-filtered_urls = filter_urls(urls, area)
-raw_keywords = get_keywords(filtered_urls)
-print(raw_keywords)
-final_keywords = filter_keywords(raw_keywords)
-print(final_keywords)
+print(pipeline(1917, 1940, 'Москва'))
