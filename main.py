@@ -24,6 +24,8 @@ def parse_urls_by_year(start, end):
 
 def filter_urls(url_list, filter_text):
     filters_urls = []
+    urls_size = len(url_list)
+    cur = 0
 
     for i in url_list:
         r = requests.get(i)
@@ -34,6 +36,10 @@ def filter_urls(url_list, filter_text):
 
         if filter_text.lower() in name.lower():
             filters_urls.append(i)
+
+        os.system('clear')
+        print(f'Done {cur / urls_size * 100}%')
+        cur += 1
 
     return filters_urls
 
@@ -59,33 +65,34 @@ def get_keywords(urls):
     print("Done!")
     return keywords
 
-raw_urls = parse_urls_by_year(1891, 2014)
-# filtered_urls = filter_urls(raw_urls, 'Санкт-Петербург')
-# print(filtered_urls)
-word_list = get_keywords(raw_urls)
 
-word_dict = {}
-for word in word_list:
-    if word in word_dict:
-        word_dict[word] += 1
-    else:
-        word_dict[word] = 1
+def filter_keywords(keywords):
+    filter_keywords = []
+    final_keywords = []
+    keywords_size = len(keywords)
+    cur = 0
 
-word_dict = dict(sorted(word_dict.items(), key=lambda x: x[1], reverse=True))
+    file = open('white_list.txt', 'r')
+    temp = file.readline()
+    while temp != '<endoftext>':
+        filter_keywords.append(temp)
+        temp = file.readline()
 
-file = open('words.txt', 'w')
+    for keyword in keywords:
+        if keyword not in final_keywords and keyword in filter_keywords:
+            final_keywords.append(keyword)
+        os.system('clear')
+        print(f'Done {cur / keywords_size * 100}%')
+        cur += 1
 
-word_dict_size = len(word_dict)
-cur = 0
-
-for i in word_dict.keys():
-    file.write(str(word_dict[i]) + ' ' + str(i) + '\n')
-    os.system('clear')
-    print(f'Done {cur /  word_dict_size * 100}%')
-
-os.system('clear')
-print('Done!')
+    return final_keywords
 
 
-file.write('<endoftext>')
-file.close()
+first, last = 1891, 1916
+area = ''
+urls = parse_urls_by_year(first, last)
+filtered_urls = filter_urls(urls, area)
+raw_keywords = get_keywords(filtered_urls)
+print(raw_keywords)
+final_keywords = filter_keywords(raw_keywords)
+print(final_keywords)
