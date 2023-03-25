@@ -34,6 +34,20 @@ def filter_urls(url_list, filter_text):
     return filters_urls
 
 
-raw_urls = parse_urls_by_year(1899, 1899)
-filtered_urls = filter_urls(raw_urls, 'Санкт-Петербург')
-print(filtered_urls)
+def get_keywords(url):
+    keywords = []
+
+    r = requests.get(url)
+    html = BS(r.content, 'html.parser')
+    pages = html.select(
+        '.section-main-content > .container-fluid > .postcard-single > .row > .col-xs-12 > .postcard-tags > .postcard-tag')
+
+    for page in pages:
+        keywords.append(str(page.contents[0]))
+
+    return keywords
+
+# raw_urls = parse_urls_by_year(1899, 1899)
+# filtered_urls = filter_urls(raw_urls, 'Санкт-Петербург')
+# print(filtered_urls)
+print(get_keywords('https://sysblok.ru/postcards/card/208894/'))
