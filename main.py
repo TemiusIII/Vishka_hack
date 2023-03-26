@@ -1,4 +1,19 @@
-async def parse_urls_by_year(start, end):
+import os
+
+import openai
+import requests
+from bs4 import BeautifulSoup as BS
+from kandinsky2 import get_kandinsky2
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+
+openai.organization = "org-8KTKwP5PvIxmALryYT18cgPQ"
+openai.api_key = "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"
+
+model = get_kandinsky2('cuda', task_type='text2img')
+
+def parse_urls_by_year(start, end):
     urls = []
     pg = 1
     for i in range(start, end + 1):
@@ -17,7 +32,7 @@ async def parse_urls_by_year(start, end):
     return urls
 
 
-async def filter_urls(url_list, filter_text):
+def filter_urls(url_list, filter_text):
     filters_urls = []
     urls_size = len(url_list)
     cur = 0
@@ -39,7 +54,7 @@ async def filter_urls(url_list, filter_text):
     return filters_urls
 
 
-async def get_keywords(urls):
+def get_keywords(urls):
     keywords = []
     urls_size = len(urls)
     cur = 0
@@ -61,7 +76,7 @@ async def get_keywords(urls):
     return keywords
 
 
-async def filter_keywords(keywords):
+def filter_keywords(keywords):
     filter_keywords = []
     final_keywords = []
 
@@ -75,7 +90,7 @@ async def filter_keywords(keywords):
     return final_keywords
 
 
-async def generate_prompts(keywords, start, end, area):
+def generate_prompts(keywords, start, end, area):
     system_passage = '''
     ты -  эксперт в истории, ты знаешь важные события которые произошли в эпохи:
     1. 1891-1916
@@ -147,7 +162,7 @@ async def generate_prompts(keywords, start, end, area):
     return result
 
 
-async def create_and_save(prompts):
+def create_and_save(prompts):
     cnt = 1
 
     os.makedirs('/kaggle/working/result', exist_ok=True)
@@ -160,7 +175,7 @@ async def create_and_save(prompts):
             cnt += 1
 
 
-async def pipeline(start, end, area):
+def pipeline(start, end, area):
     raw_urls = parse_urls_by_year(start, end)
     filtered_urls = filter_urls(raw_urls, area)
     raw_keywords = get_keywords(filtered_urls)
