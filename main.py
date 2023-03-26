@@ -1,91 +1,53 @@
-import os
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-import requests
-from bs4 import BeautifulSoup as BS
-
-
-def parse_urls_by_year(start, end):
-    urls = []
-    pg = 1
-    for i in range(start, end + 1):
-        r = requests.get(f'https://sysblok.ru/postcards/postcard-year/{i}')
-        html = BS(r.content, 'html.parser')
-
-        pages = html.select(
-            '.postcards__page > .postcards__container > .postcard__item > .post-card > .entry-thumb-link')
-
-        for page in pages:
-            urls.append(page['href'])
-        os.system('clear')
-        print("Parsed year", i)
-
-    print("Done!")
-    return urls
+bot = Bot("5864672896:AAGN9RkSx5HFguOPt96wdCffRFH-ykHbeDc")
+dp = Dispatcher(bot)
+all_t = ["1891-1916", "1917-1940", "1941-1965", "1966-1985", "1986-1992", "1993-2014"]
 
 
-def filter_urls(url_list, filter_text):
-    filters_urls = []
-    urls_size = len(url_list)
-    cur = 0
-
-    for i in url_list:
-        r = requests.get(i)
-        html = BS(r.content, 'html.parser')
-        page = html.select(
-            '.section-main-content > .container-fluid > .postcard-single > .row > .col-xs-12 > .entry-title')
-        name = page[0].contents[0]
-
-        if filter_text.lower() in name.lower():
-            filters_urls.append(i)
-
-        os.system('clear')
-        print(f'Done {cur / urls_size * 100}%')
-        cur += 1
-
-    return filters_urls
+@dp.message_handler(commands=["start"])
+async def send_welcome(message: types.Message):
+  inline_btn1=InlineKeyboardButton("Пример работы", callback_data="example")
+  inline_btn2 = InlineKeyboardButton("Собственный запрос", callback_data="do")
+  inline_kb = InlineKeyboardMarkup().add(inline_btn1).add(inline_btn2)
+  await message.reply(text=f"Привет, {message.from_user.first_name}!\nЯ бот, написанный командой \"Тяжело\" на хакатоне ВШЭ\nЗдесь можно получить портрет эпохи прислав дату и место\nВыбирай что ты хочешь:", reply_markup=inline_kb)
 
 
-def get_keywords(urls):
-    keywords = []
-    urls_size = len(urls)
-    cur = 0
+@dp.callback_query_handler(text="example")
+async def call_example(callback: types.CallbackQuery):
+    await callback.answer("Код выполняется")
+    await callback.message.answer_photo(photo="https://replit.com/@dvervevre/tagelo#%D0%91%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F.png", caption="1941-1945, Cанкт-Петербург")
 
-    for url in urls:
-        r = requests.get(url)
-        html = BS(r.content, 'html.parser')
-        pages = html.select(
-            '.section-main-content > .container-fluid > .postcard-single > .row > .col-xs-12 > .postcard-tags > .postcard-tag')
-
-        for page in pages:
-            keywords.append(str(page.contents[0]))
-
-        os.system('clear')
-        print(f'Done {cur / urls_size * 100}%')
-        cur += 1
-
-    print("Done!")
-    return keywords
+@dp.callback_query_handler(text="do")
+async def call_another(callback: types.CallbackQuery):
+    await callback.message.answer("Пришлите запрос форматом гггг-гггг, место:")
 
 
-def filter_keywords(keywords):
-    filter_keywords = []
-    final_keywords = []
 
-    file = open('white_list.txt', 'r')
-    filter_keywords = file.read().split('\n')
+@dp.message_handler()
+async def all(message: types.Message):
+    if message.text.count("-") & message.text.count(","):
+        global all_t
+        start = end = 0
+        place = ""
+        t=message.text[:message.text.find(",")]
+        if t in all_t:
+            start = message.text[:message.text.find("-")]
+            t = message.text[message.text.find("-") + 1:]
+            end = t[:t.find(",")]
+            place = t[t.find(",") + 2:]
+        else:
+            await message.answer("Вы ввели неправильную дату\nМожно вводить только:\n1891-1916\n1917-1940\n1941-1965\n1966-1985\n1986-1992\n1993-2014")
+        if end != start:
+            await message.answer("Здесь будет вывод фоток")
+            await message.answer(start)
+            await message.answer(end)
+            await message.answer(place)
+    else:
+        await message.reply("Я вас не понял(")
 
 
-    for keyword in keywords:
-        if keyword not in final_keywords and keyword in filter_keywords:
-            final_keywords.append(keyword)
 
-    return final_keywords
-
-def pipeline(start, end, area):
-    urls = parse_urls_by_year(start, end)
-    filtered_urls = filter_urls(urls, area)
-    raw_keywords = get_keywords(filtered_urls)
-    final_keywords = filter_keywords(raw_keywords)
-    return final_keywords
-
-print(pipeline(1917, 1940, 'Москва'))
+if __name__ == "__main__":
+    executor.start_polling(dp, skip_updates=True)
