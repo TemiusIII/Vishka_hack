@@ -1,16 +1,4 @@
-import os
-
-import openai
-import requests
-from bs4 import BeautifulSoup as BS
-from kandinsky2 import get_kandinsky2
-
-openai.organization = "org-8KTKwP5PvIxmALryYT18cgPQ"
-openai.api_key = "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"
-
-model = get_kandinsky2('cuda', task_type='text2img')
-
-def parse_urls_by_year(start, end):
+async def parse_urls_by_year(start, end):
     urls = []
     pg = 1
     for i in range(start, end + 1):
@@ -29,7 +17,7 @@ def parse_urls_by_year(start, end):
     return urls
 
 
-def filter_urls(url_list, filter_text):
+async def filter_urls(url_list, filter_text):
     filters_urls = []
     urls_size = len(url_list)
     cur = 0
@@ -51,7 +39,7 @@ def filter_urls(url_list, filter_text):
     return filters_urls
 
 
-def get_keywords(urls):
+async def get_keywords(urls):
     keywords = []
     urls_size = len(urls)
     cur = 0
@@ -73,7 +61,7 @@ def get_keywords(urls):
     return keywords
 
 
-def filter_keywords(keywords):
+async def filter_keywords(keywords):
     filter_keywords = []
     final_keywords = []
 
@@ -87,7 +75,7 @@ def filter_keywords(keywords):
     return final_keywords
 
 
-def generate_prompts(keywords, start, end, area):
+async def generate_prompts(keywords, start, end, area):
     system_passage = '''
     ты -  эксперт в истории, ты знаешь важные события которые произошли в эпохи:
     1. 1891-1916
@@ -150,6 +138,7 @@ def generate_prompts(keywords, start, end, area):
     for choice in response.choices:
         result += choice.message.content
 
+    result = result.split('<endofpassage>')
     for i in range(len(result)):
         for j in '1. |2. |3. |4. |5. |6. '.split('|'):
             result[i] = result[i].replace(j, '')
@@ -157,25 +146,24 @@ def generate_prompts(keywords, start, end, area):
 
     return result
 
-def create_and_save(prompts):
+
+async def create_and_save(prompts):
     cnt = 1
-    
-    os.makedirs('result', exist_ok=True)
+
+    os.makedirs('/kaggle/working/result', exist_ok=True)
     for prompt in prompts:
         images = model.generate_text2img(prompt, batch_size=2, h=512, w=512, num_steps=75,
                                          denoised_type='dynamic_threshold', dynamic_threshold_v=99.5,
                                          sampler='ddim_sampler', ddim_eta=0.05, guidance_scale=10)
         for i in range(len(images)):
-            images[i].save(f'images/{cnt}.png')
+            images[i].save(f'/kaggle/working/result/{cnt}.png')
             cnt += 1
 
-start, end = 1941, 1965
-area = 'Санкт-Петербург'
 
-raw_urls = parse_urls_by_year(start, end)
-filtered_urls = filter_urls(raw_urls, area)
-raw_keywords = get_keywords(filtered_urls)
-final_keywords = filter_keywords(raw_keywords)
-prompts = generate_prompts(final_keywords, start, end, area)
-create_and_save(prompts)
-
+async def pipeline(start, end, area):
+    raw_urls = parse_urls_by_year(start, end)
+    filtered_urls = filter_urls(raw_urls, area)
+    raw_keywords = get_keywords(filtered_urls)
+    final_keywords = filter_keywords(raw_keywords)
+    prompts = generate_prompts(final_keywords, start, end, area)
+    create_and_save(prompts)
