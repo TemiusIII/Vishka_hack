@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-bot = Bot("5864672896:AAGN9RkSx5HFguOPt96wdCffRFH-ykHbeDc")
+bot = Bot("BOT TOKEN")
 dp = Dispatcher(bot)
 all_t = ["1891-1916", "1917-1940", "1941-1965", "1966-1985", "1986-1992", "1993-2014"]
 
