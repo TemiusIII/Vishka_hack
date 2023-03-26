@@ -87,17 +87,6 @@ def filter_keywords(keywords):
     return final_keywords
 
 
-def pipeline(start, end, area):
-    urls = parse_urls_by_year(start, end)
-    filtered_urls = filter_urls(urls, area)
-    raw_keywords = get_keywords(filtered_urls)
-    final_keywords = filter_keywords(raw_keywords)
-    return final_keywords
-
-
-print(pipeline(1917, 1940, 'Москва'))
-
-
 def generate_prompts(keywords, start, end, area):
     system_passage = '''
     ты -  эксперт в истории, ты знаешь важные события которые произошли в эпохи:
