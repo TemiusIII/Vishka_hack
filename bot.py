@@ -40,10 +40,15 @@ async def all(message: types.Message):
         else:
             await message.answer("Вы ввели неправильную дату\nМожно вводить только:\n1891-1916\n1917-1940\n1941-1965\n1966-1985\n1986-1992\n1993-2014")
         if end != start:
-            await message.answer("Здесь будет вывод фоток")
-            await message.answer(start)
-            await message.answer(end)
-            await message.answer(place)
+            pipeline(start, end, place)
+            await message.answer_photo("/kaggle/working/images/1.png",caption=message.text)
+            await message.answer_photo("/kaggle/working/images/2.png",caption=message.text)
+            await message.answer_photo("/kaggle/working/images/3.png",caption=message.text)
+            await message.answer_photo("/kaggle/working/images/4.png",caption=message.text)
+            await message.answer_photo("/kaggle/working/images/5.png",caption=message.text)
+            await message.answer_photo("/kaggle/working/images/6.png",caption=message.text)
+            await message.answer_photo("/kaggle/working/images/7.png",caption=message.text)
+            await message.answer_photo("/kaggle/working/images/8.png",caption=message.text)
     else:
         await message.reply("Я вас не понял(")
 
