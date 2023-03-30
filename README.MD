@@ -13,3 +13,8 @@
 ## ~~Написать Telegram Bot~~
 
 ## ~~Поженить все отдельные скрипты~~
+
+#instalation 
+
+pip install "git+https://github.com/ai-forever/Kandinsky-2.git"
+pip install openai requests bs4

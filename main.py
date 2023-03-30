@@ -1,17 +1,18 @@
+# -*- coding: utf-8 -*-
+
 import os
 
 import openai
 import requests
 from bs4 import BeautifulSoup as BS
-from kandinsky2 import get_kandinsky2
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+# from kandinsky2 import get_kandinsky2
 
 openai.organization = "org-8KTKwP5PvIxmALryYT18cgPQ"
-openai.api_key = "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"
+openai.api_key = "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"
 
-model = get_kandinsky2('cuda', task_type='text2img')
+# model = get_kandinsky2('cuda', task_type='text2img')
+
 
 def parse_urls_by_year(start, end):
     urls = []
@@ -162,23 +163,50 @@ def generate_prompts(keywords, start, end, area):
     return result
 
 
-def create_and_save(prompts):
-    cnt = 1
 
-    os.makedirs('/kaggle/working/result', exist_ok=True)
-    for prompt in prompts:
-        images = model.generate_text2img(prompt, batch_size=2, h=512, w=512, num_steps=75,
-                                         denoised_type='dynamic_threshold', dynamic_threshold_v=99.5,
-                                         sampler='ddim_sampler', ddim_eta=0.05, guidance_scale=10)
-        for i in range(len(images)):
-            images[i].save(f'/kaggle/working/result/{cnt}.png')
-            cnt += 1
+# def create_and_save(prompts):
+#     cnt = 1
+#
+#     os.makedirs('/kaggle/working/result', exist_ok=True)
+#     for prompt in prompts:
+#         images = model.generate_text2img(prompt, batch_size=2, h=512, w=512, num_steps=75,
+#                                          denoised_type='dynamic_threshold', dynamic_threshold_v=99.5,
+#                                          sampler='ddim_sampler', ddim_eta=0.05, guidance_scale=10)
+#         for i in range(len(images)):
+#             images[i].save(f'/kaggle/working/result/{cnt}.png')
+#             cnt += 1
+
+
+def fast_keywords(start, end):
+    input_file = open("fast_keywords.txt", "r", encoding="utf-8")
+    dicta = {}
+
+    for t_line in input_file:
+        line = t_line[0:-1]
+        date, lst = line.split(None, 1)
+        lst = lst.strip("[]").replace("'", "").split(",")
+        dicta[date] = lst
+
+    keywords = []
+    for i in range(start, end + 1):
+        for word in dicta[str(i)]:
+            if word != '' and word not in keywords:
+                keywords.append(word)
+
+    return keywords
 
 
 def pipeline(start, end, area):
-    raw_urls = parse_urls_by_year(start, end)
-    filtered_urls = filter_urls(raw_urls, area)
-    raw_keywords = get_keywords(filtered_urls)
-    final_keywords = filter_keywords(raw_keywords)
+    # raw_urls = parse_urls_by_year(start, end)
+    # filtered_urls = filter_urls(raw_urls, area)
+    # raw_keywords = get_keywords(filtered_urls)
+    # final_keywords = filter_keywords(raw_keywords)
+    final_keywords = fast_keywords(start, end)
+    print(final_keywords)
     prompts = generate_prompts(final_keywords, start, end, area)
-    create_and_save(prompts)
+    print(prompts)
+
+    # create_and_save(prompts)
+
+
+# pipeline(1941, 1945, 'Москва')
